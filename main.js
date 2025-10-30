@@ -215,7 +215,7 @@ function renderQuestion() {
 }
 
 const APPS_SCRIPT_URL =
-  'https://script.google.com/macros/s/AKfycbyOmFmtTLxvNoeH-KCOOgODI-H5ZPOOmbNT4Zylq3WzfR_IrwCyaRxzExCHXmp2-7Mo/exec';
+  'https://script.google.com/macros/s/AKfycbz5gDy1fzhCK5NU40TTQ6iGXY_kus3PDzbQ_j7HLXtBVUXGiEPyyKhf-meIR6Us3F4nMA/exec';
 
 // Biến để theo dõi trạng thái loading
 let isSummarizeLoading = false;

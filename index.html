@@ -4,6 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Quiz App - Trắc Nghiệm Thông Minh</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
     <style>
       :root {
         --primary: #2563eb;
@@ -12,6 +16,8 @@
         --light: #f8fafc;
         --border: #e2e8f0;
         --shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+        --ai-bg: #ecfdf5;
+        --ai-border: #10b981;
       }
 
       * {
@@ -24,14 +30,15 @@
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         background: linear-gradient(135deg, #dbeafe, #fef3c7);
         min-height: 100vh;
-        padding: 20px;
+        padding: 12px;
+        line-height: 1.6;
       }
 
       .quiz-container {
-        max-width: 80vw;
-        margin: 5px auto;
+        max-width: 100%;
+        margin: 0 auto;
         background: white;
-        border-radius: 20px;
+        border-radius: 16px;
         overflow: hidden;
         box-shadow: var(--shadow);
         animation: fadeInUp 0.6s ease;
@@ -40,7 +47,7 @@
       @keyframes fadeInUp {
         from {
           opacity: 0;
-          transform: translateY(30px);
+          transform: translateY(20px);
         }
         to {
           opacity: 1;
@@ -51,7 +58,7 @@
       @keyframes slideIn {
         from {
           opacity: 0;
-          transform: translateX(-30px);
+          transform: translateX(-20px);
         }
         to {
           opacity: 1;
@@ -75,12 +82,12 @@
         background: linear-gradient(135deg, #1e40af, #3b82f6);
         color: white;
         text-align: center;
-        padding: 18px 20px;
+        padding: 14px 16px;
       }
 
       h1 {
         margin: 0;
-        font-size: 1.7rem;
+        font-size: 1.4rem;
         font-weight: 600;
       }
 
@@ -88,36 +95,36 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin: 15px 20px 0;
-        font-size: 0.95rem;
-        color: white;
+        margin: 10px 16px 0;
+        font-size: 0.9rem;
       }
 
       .progress-container {
-        height: 7px;
+        height: 6px;
         background: #e0e7ff;
-        margin: 10px 20px 15px;
+        margin: 8px 16px 12px;
         border-radius: 4px;
         overflow: hidden;
       }
 
       .progress-bar {
         height: 100%;
-        background: #3b82f6;
+        background: #60a5fa;
         width: 0%;
         border-radius: 4px;
-        transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: width 0.5s ease;
       }
 
       .mode-selection {
-        padding: 30px 20px;
+        padding: 20px 16px;
         text-align: center;
       }
 
       .mode-btn {
-        display: inline-block;
-        margin: 8px;
-        padding: 14px 26px;
+        display: block;
+        width: 100%;
+        margin: 10px 0;
+        padding: 14px;
         font-size: 15px;
         font-weight: 500;
         color: white;
@@ -125,54 +132,55 @@
         border: none;
         border-radius: 12px;
         cursor: pointer;
-        min-width: 170px;
         transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(37, 99, 235, 0.25);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
       }
 
       .mode-btn:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
       }
 
       .quiz-area {
-        padding: 30px 25px;
+        padding: 16px;
         display: none;
         animation: slideIn 0.5s ease;
       }
 
       .part-selector {
         text-align: center;
-        margin-bottom: 20px;
+        margin-bottom: 16px;
       }
 
       select {
-        padding: 10px 16px;
+        width: 100%;
+        padding: 10px 12px;
         font-size: 15px;
-        border: 1px solid #d1d5db;
+        border: 1.5px solid #d1d5db;
         border-radius: 10px;
         background: white;
+        margin-top: 6px;
       }
 
       .question-box {
         background: var(--light);
-        padding: 25px;
-        border-radius: 16px;
+        padding: 18px;
+        border-radius: 14px;
         border: 1px solid var(--border);
-        margin-bottom: 20px;
+        margin-bottom: 16px;
         animation: slideIn 0.5s ease;
       }
 
       .question-counter {
-        font-size: 1.1rem;
+        font-size: 1rem;
         font-weight: 600;
         color: #1e293b;
-        margin-bottom: 16px;
+        margin-bottom: 10px;
       }
 
       .question-text {
-        font-size: 1.15rem;
-        margin-bottom: 20px;
+        font-size: 1.05rem;
+        margin-bottom: 16px;
         line-height: 1.6;
         color: #1f2937;
       }
@@ -185,24 +193,25 @@
       .option-item {
         padding: 14px 16px;
         background: white;
-        border: 1.5px solid #e5e7eb;
+        border: 1.8px solid #e5e7eb;
         border-radius: 12px;
         cursor: pointer;
         transition: all 0.25s ease;
-        font-size: 1rem;
+        font-size: 0.98rem;
         position: relative;
         user-select: none;
+        word-break: break-word;
       }
 
       .option-item:hover:not(.selected) {
         border-color: #93c5fd;
         background: #f0f9ff;
-        transform: translateX(4px);
+        transform: translateX(3px);
       }
 
       .option-item.selected {
         pointer-events: none;
-        opacity: 0.7;
+        opacity: 0.75;
       }
 
       .option-item.correct {
@@ -221,24 +230,18 @@
       }
 
       .option-item.warning {
-        background: #fef2f2;
-        border-color: yellow;
-        color: #757500;
-        font-weight: 600;
-      }
-
-      .option-item.warning {
-        background: #fef2f2;
-        border-color: yellow;
+        background: #fffbeb;
+        border-color: #fbbf24;
+        color: #92400e;
         font-weight: 600;
       }
 
       .feedback {
-        margin-top: 16px;
-        padding: 14px;
+        margin-top: 14px;
+        padding: 12px;
         border-radius: 10px;
         font-weight: 500;
-        font-size: 1rem;
+        font-size: 0.95rem;
         display: none;
         animation: fadeInUp 0.4s ease;
       }
@@ -248,43 +251,116 @@
         color: var(--success);
         border: 1px solid #86efac;
       }
-
       .feedback.wrong {
         background: #fef2f2;
         color: var(--danger);
         border: 1px solid #fca5a5;
       }
-
       .feedback.warning {
-        background: rgb(247 247 149);
-        color: #757500;
-        border: 1px solid yellowgreen;
+        background: #fffbeb;
+        color: #92400e;
+        border: 1px solid #fbbf24;
+      }
+
+      /* AI Box - Chỉ hiện khi nhấn nút */
+      .ai-explanation {
+        margin-top: 14px;
+        padding: 16px;
+        background: var(--ai-bg);
+        border: 2px solid var(--ai-border);
+        border-radius: 12px;
+        font-size: 0.94rem;
+        color: #166534;
+        display: none;
+        animation: fadeInUp 0.4s ease;
+        position: relative;
+      }
+
+      .ai-explanation h4 {
+        margin: 0 0 10px;
+        color: #15803d;
+        font-size: 1.05rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .ai-explanation .tip {
+        margin-top: 12px;
+        padding: 10px;
+        background: #f0fdf4;
+        border-left: 4px solid #22c55e;
+        border-radius: 6px;
+        font-style: italic;
+        color: #15803d;
+      }
+
+      .btn-ai-call {
+        background: #10b981;
+        color: white;
+        padding: 10px 16px;
+        font-size: 14px;
+        font-weight: 500;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 14px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+      }
+
+      .btn-ai-call:hover {
+        background: #059669;
+        transform: translateY(-1px);
+      }
+
+      .btn-ai-close {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: #dc2626;
+        color: white;
+        border: none;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
 
       .action-buttons {
         display: flex;
-        gap: 12px;
+        gap: 10px;
         justify-content: center;
-        margin-top: 25px;
+        margin-top: 20px;
         flex-wrap: wrap;
       }
 
       .btn {
-        padding: 12px 28px;
-        font-size: 15px;
+        padding: 11px 20px;
+        font-size: 14px;
         font-weight: 500;
         border: none;
         border-radius: 10px;
         cursor: pointer;
         transition: all 0.3s ease;
-        min-width: 130px;
+        min-width: 100px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
       }
 
       .btn-next {
         background: var(--primary);
         color: white;
       }
-
       .btn-next:hover {
         background: #1d4ed8;
       }
@@ -293,7 +369,6 @@
         background: #ef4444;
         color: white;
       }
-
       .btn-end:hover {
         background: #dc2626;
       }
@@ -307,16 +382,15 @@
         top: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0, 0, 0, 0.5);
-        animation: fadeIn 0.3s ease;
+        background: rgba(0, 0, 0, 0.6);
       }
 
       .modal-content {
         background: white;
-        margin: 10% auto;
-        padding: 30px;
+        margin: 15% auto;
+        padding: 24px;
         width: 90%;
-        max-width: 500px;
+        max-width: 420px;
         border-radius: 16px;
         text-align: center;
         box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
@@ -336,24 +410,22 @@
 
       .modal h3 {
         color: #166534;
-        margin-bottom: 16px;
+        margin-bottom: 12px;
+        font-size: 1.3rem;
       }
-
       .modal-score {
-        font-size: 2.5rem;
+        font-size: 2.2rem;
         font-weight: bold;
         color: #16a34a;
-        margin: 12px 0;
+        margin: 10px 0;
       }
-
       .modal-stats {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 12px;
-        margin: 20px 0;
-        font-size: 0.95rem;
+        gap: 10px;
+        margin: 16px 0;
+        font-size: 0.9rem;
       }
-
       .modal-stat {
         background: #f0fdf4;
         padding: 10px;
@@ -362,32 +434,31 @@
       }
 
       .modal .btn {
-        margin-top: 20px;
         background: #6b7280;
-        color: white;
+        margin-top: 16px;
       }
-
       .modal .btn:hover {
         background: #4b5563;
       }
 
-      @media (max-width: 600px) {
+      @media (min-width: 640px) {
+        .quiz-container {
+          max-width: 600px;
+        }
         .mode-btn {
-          width: 100%;
-          margin: 8px 0;
+          display: inline-block;
+          width: auto;
+          min-width: 160px;
+          margin: 8px;
         }
         .action-buttons {
-          flex-direction: column;
-        }
-        .modal-content {
-          margin: 20% auto;
-          padding: 20px;
+          flex-direction: row;
         }
       }
     </style>
   </head>
   <body>
-    <div class="quiz-container">
+    <div class="1quiz-container">
       <header>
         <div class="progress-info">
           <span id="questionCounter">Chọn chế độ để bắt đầu</span>
@@ -437,7 +508,13 @@
             Thời gian: <strong id="modalTime">00:00</strong>
           </div>
         </div>
-        <button class="btn" onclick="closeModal()">Quay lại</button>
+        <button
+          class="btn"
+          onclick="closeModal()"
+          style="color: white; font-weight: bold; width: 100%"
+        >
+          Quay lại
+        </button>
       </div>
     </div>
 
@@ -451,11 +528,9 @@
       let startTime = 0;
       let timerInterval = null;
 
-      // Load dữ liệu
       fetch('questions.json')
         .then((res) => res.json())
         .then((data) => {
-          // LỌC CÂU HỎI HỢP LỆ
           questions = data;
           updatePartSelector();
         })
@@ -471,8 +546,7 @@
         for (let i = 1; i <= parts; i++) {
           const start = (i - 1) * 50 + 1;
           const end = Math.min(i * 50, questions.length);
-          const opt = new Option(`Phần ${i} (câu ${start}-${end})`, i);
-          select.add(opt);
+          select.add(new Option(`Phần ${i} (câu ${start}-${end})`, i));
         }
       }
 
@@ -569,18 +643,32 @@
               .join('')}
           </div>
           <div id="feedback" class="feedback" style="display: none;"></div>
+
+          <!-- Nút Call AI -->
+          <button id="callAiBtn" class="btn-ai-call" style="display: none;" onclick="showAiExplanation()">
+            <i class="fas fa-robot"></i> Call AI Giải Thích
+          </button>
+
+          <!-- AI Box (ẩn mặc định) -->
+          <div id="aiExplanation" class="ai-explanation">
+            <button class="btn-ai-close" onclick="hideAiExplanation()">×</button>
+            <h4><i class="fas fa-brain"></i> AI Giải Thích</h4>
+            <div id="aiText"></div>
+            <div class="tip" id="aiTip" style="display: none;"></div>
+          </div>
         `;
 
         form.appendChild(div);
         updateProgress();
-        showActionButtons(); // Luôn hiện 2 nút
+        showActionButtons();
       }
 
       function selectAnswer(selected) {
         const q = currentQuestions[currentIndex];
         const feedback = document.getElementById('feedback');
+        const callBtn = document.getElementById('callAiBtn');
 
-        // Vô hiệu hóa tất cả
+        // Vô hiệu hóa chọn đáp án
         document.querySelectorAll('.option-item').forEach((el) => {
           el.classList.add('selected');
           el.style.pointerEvents = 'none';
@@ -613,26 +701,47 @@
               );
             }
           }
+
+          // HIỆN NÚT CALL AI
+          callBtn.style.display = 'flex';
         } else {
           selectedEl.classList.add('warning');
           feedback.className = 'feedback warning';
-          feedback.innerHTML = `Tài kiệu không có câu trả lời`;
+          feedback.innerHTML = `Tài liệu không có đáp án đúng!`;
         }
 
         feedback.style.display = 'block';
-        showActionButtons(); // Cập nhật nút
+        showActionButtons();
+      }
+
+      function showAiExplanation() {
+        const q = currentQuestions[currentIndex];
+        const aiBox = document.getElementById('aiExplanation');
+        const aiText = document.getElementById('aiText');
+        const aiTip = document.getElementById('aiTip');
+        const callBtn = document.getElementById('callAiBtn');
+
+        aiText.innerHTML = q.explanation || 'Không có giải thích chi tiết.';
+        if (q.tip) {
+          aiTip.textContent = 'Mẹo nhớ: ' + q.tip;
+          aiTip.style.display = 'block';
+        } else {
+          aiTip.style.display = 'none';
+        }
+
+        aiBox.style.display = 'block';
+        callBtn.style.display = 'none'; // Ẩn nút sau khi nhấn
+      }
+
+      function hideAiExplanation() {
+        document.getElementById('aiExplanation').style.display = 'none';
       }
 
       function showActionButtons() {
         const hasNext = currentIndex < currentQuestions.length - 1;
-        let buttons = `
-          <button class="btn btn-end" onclick="endQuiz()">Kết thúc</button>
-        `;
+        let buttons = `<button class="btn btn-end" onclick="endQuiz()">Kết thúc</button>`;
         if (hasNext) {
-          buttons = `
-            <button class="btn btn-next" onclick="nextQuestion()">Câu tiếp theo</button>
-            ${buttons}
-          `;
+          buttons = `<button class="btn btn-next" onclick="nextQuestion()">Câu tiếp theo</button>${buttons}`;
         } else {
           buttons = `<button class="btn btn-end" onclick="endQuiz()">Hoàn thành</button>`;
         }

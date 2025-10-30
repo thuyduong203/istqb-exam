@@ -56,7 +56,8 @@
       "B": "Tasks are assigned to specific team members who will own that task until completion",
       "C": "Testers have clear ownership of quality and this eliminates confusion and overlap",
       "D": "Business representatives are not included in the team so they can supply independent assessment during UAT"
-    }
+    },
+    "answer": "A"
   },
   {
     "question": "If you are using test results to learn more about the software and are then creating additional tests based on those results, what type of testing are you doing?",

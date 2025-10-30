@@ -18,6 +18,7 @@
         --shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
         --ai-bg: #ecfdf5;
         --ai-border: #10b981;
+        --shuffle: #f59e0b;
       }
 
       * {
@@ -85,12 +86,6 @@
         padding: 14px 16px;
       }
 
-      h1 {
-        margin: 0;
-        font-size: 1.4rem;
-        font-weight: 600;
-      }
-
       .progress-info {
         display: flex;
         justify-content: space-between;
@@ -139,6 +134,14 @@
       .mode-btn:hover {
         transform: translateY(-2px);
         box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
+      }
+
+      .mode-btn.random {
+        background: var(--shuffle);
+      }
+
+      .mode-btn.random:hover {
+        background: #d97706;
       }
 
       .quiz-area {
@@ -262,7 +265,6 @@
         border: 1px solid #fbbf24;
       }
 
-      /* AI Box - Chỉ hiện khi nhấn nút */
       .ai-explanation {
         margin-top: 14px;
         padding: 16px;
@@ -373,7 +375,17 @@
         background: #dc2626;
       }
 
-      /* Modal */
+      .btn-shuffle {
+        background: var(--shuffle);
+        color: white;
+        font-size: 13px;
+        padding: 8px 14px;
+      }
+
+      .btn-shuffle:hover {
+        background: #d97706;
+      }
+
       .modal {
         display: none;
         position: fixed;
@@ -458,7 +470,7 @@
     </style>
   </head>
   <body>
-    <div class="1quiz-container">
+    <div class="quiz-container">
       <header>
         <div class="progress-info">
           <span id="questionCounter">Chọn chế độ để bắt đầu</span>
@@ -477,6 +489,9 @@
         </button>
         <button class="mode-btn" onclick="startMode('wrong')">
           Làm lại câu sai
+        </button>
+        <button class="mode-btn random" onclick="startMode('random')">
+          Thi thử 40 câu
         </button>
       </div>
 
@@ -528,6 +543,16 @@
       let startTime = 0;
       let timerInterval = null;
 
+      // Hàm trộn mảng
+      function shuffle(array) {
+        const arr = [...array];
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+      }
+
       fetch('questions.json')
         .then((res) => res.json())
         .then((data) => {
@@ -576,6 +601,18 @@
             resetToMode();
             return;
           }
+          startQuiz();
+        } else if (mode === 'random') {
+          if (questions.length < 40) {
+            alert(
+              `Chỉ có ${questions.length} câu, không đủ 40 câu để thi thử!`
+            );
+            resetToMode();
+            return;
+          }
+          currentQuestions = questions
+            .slice(0, 40)
+            .map((q, i) => ({ ...q, originalIndex: questions.indexOf(q) }));
           startQuiz();
         }
       }
@@ -646,13 +683,13 @@
 
           <!-- Nút Call AI -->
           <button id="callAiBtn" class="btn-ai-call" style="display: none;" onclick="showAiExplanation()">
-            <i class="fas fa-robot"></i> Call AI Giải Thích
+            Call AI Giải Thích
           </button>
 
-          <!-- AI Box (ẩn mặc định) -->
+          <!-- AI Box -->
           <div id="aiExplanation" class="ai-explanation">
             <button class="btn-ai-close" onclick="hideAiExplanation()">×</button>
-            <h4><i class="fas fa-brain"></i> AI Giải Thích</h4>
+            <h4>AI Giải Thích</h4>
             <div id="aiText"></div>
             <div class="tip" id="aiTip" style="display: none;"></div>
           </div>
@@ -668,7 +705,6 @@
         const feedback = document.getElementById('feedback');
         const callBtn = document.getElementById('callAiBtn');
 
-        // Vô hiệu hóa chọn đáp án
         document.querySelectorAll('.option-item').forEach((el) => {
           el.classList.add('selected');
           el.style.pointerEvents = 'none';
@@ -701,8 +737,6 @@
               );
             }
           }
-
-          // HIỆN NÚT CALL AI
           callBtn.style.display = 'flex';
         } else {
           selectedEl.classList.add('warning');
@@ -730,18 +764,38 @@
         }
 
         aiBox.style.display = 'block';
-        callBtn.style.display = 'none'; // Ẩn nút sau khi nhấn
+        callBtn.style.display = 'none';
       }
 
       function hideAiExplanation() {
         document.getElementById('aiExplanation').style.display = 'none';
       }
 
+      function shuffleQuestions() {
+        if (currentQuestions.length <= 1) return;
+        currentQuestions = shuffle(currentQuestions);
+        currentIndex = 0;
+        score = 0;
+        document.getElementById(
+          'questionCounter'
+        ).textContent = `Câu 1/${currentQuestions.length}`;
+        renderQuestion();
+        alert('Đã xáo trộn câu hỏi!');
+      }
+
       function showActionButtons() {
         const hasNext = currentIndex < currentQuestions.length - 1;
-        let buttons = `<button class="btn btn-end" onclick="endQuiz()">Kết thúc</button>`;
+        let buttons = `
+          <button class="btn btn-shuffle" onclick="shuffleQuestions()">
+            Xáo trộn
+          </button>
+          <button class="btn btn-end" onclick="endQuiz()">Kết thúc</button>
+        `;
         if (hasNext) {
-          buttons = `<button class="btn btn-next" onclick="nextQuestion()">Câu tiếp theo</button>${buttons}`;
+          buttons = `
+            <button class="btn btn-next" onclick="nextQuestion()">Câu tiếp theo</button>
+            ${buttons}
+          `;
         } else {
           buttons = `<button class="btn btn-end" onclick="endQuiz()">Hoàn thành</button>`;
         }

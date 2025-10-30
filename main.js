@@ -188,8 +188,14 @@ function renderQuestion() {
 
     <div class="options">${optionsHtml}</div>
   `;
-
-  form.appendChild(div);
+  const parentDiv = document.createElement('div');
+  parentDiv.className = 'parent-question-box';
+  const divAI = document.createElement('div');
+  divAI.id = 'ai-response';
+  divAI.style.display = 'none';
+  parentDiv.appendChild(div);
+  parentDiv.appendChild(divAI);
+  form.appendChild(parentDiv);
 
   // Nếu câu hỏi đã được trả lời
   const optionEls = form.querySelectorAll('.option-item');
@@ -206,17 +212,6 @@ function renderQuestion() {
 
   updateProgress();
   showActionButtons();
-}
-
-// Mở modal hiển thị kết quả
-function openAiModal(title, content) {
-  const modal = document.getElementById('aiModal');
-  const modalTitle = document.getElementById('aiModalTitle');
-  const modalBody = document.getElementById('aiModalBody');
-
-  modalTitle.innerHTML = title;
-  modalBody.innerHTML = `<div class="typing">${content}</div>`;
-  modal.style.display = 'block';
 }
 
 const APPS_SCRIPT_URL =
@@ -271,11 +266,13 @@ async function summarizeWithAI(index, button) {
 
     if (data.error) throw new Error(data.error);
 
-    // CHỈ MỞ MODAL KHI ĐÃ CALL API XONG
-    openAiModal(
-      'Tóm tắt bằng AI',
-      `
-      <div class="ai-result">
+    // CHỈ MỞ KHI ĐÃ CALL API XONG
+    const aiResponseDiv = document.getElementById('ai-response');
+    aiResponseDiv.style.display = 'block';
+    aiResponseDiv.innerHTML = `
+    <div>
+        <div>
+          <div class="ai-result">
       ${
         data.explanation
           ? `<p class="mt-2"><strong>🧠 Giải thích:</strong> ${data.explanation}</p>`
@@ -287,21 +284,23 @@ async function summarizeWithAI(index, button) {
             : ''
         }
       </div>
-      `
-    );
+        </div>
+      </div>`;
   } catch (error) {
-    // Mở modal hiển thị lỗi
-    openAiModal(
-      'Lỗi',
-      `<div class="error p-3 bg-red-100 rounded-md">❌ Lỗi khi gọi AI: ${error.message}</div>`
-    );
+    const aiResponseDiv = document.getElementById('ai-response');
+    aiResponseDiv.style.display = 'block';
+    aiResponseDiv.innerHTML = `
+    <div>
+        <div>
+          <div class="error p-3 bg-red-100 rounded-md">❌ Lỗi khi gọi AI: ${error.message}</div>
+        </div>
+      </div>`;
     console.error('Lỗi gọi Apps Script:', error);
   } finally {
     // Reset trạng thái loading
     isSummarizeLoading = false;
     button.disabled = false;
-    button.innerHTML = '✨';
-    button.title = 'Tóm tắt bằng AI';
+    button.innerHTML = '✨ Phân tích';
   }
 }
 
@@ -372,8 +371,7 @@ async function translateWithAI(index, button) {
     // Reset trạng thái loading
     isTranslateLoading = false;
     button.disabled = false;
-    button.innerHTML = '🌐';
-    button.title = 'Dịch bằng AI';
+    button.innerHTML = '🌐 Dịch';
   }
 }
 
@@ -593,10 +591,6 @@ function retryWrongInSession() {
 
 function closeHelpModal() {
   document.getElementById('helpModal').style.display = 'none';
-}
-
-function closeAiModal() {
-  document.getElementById('aiModal').style.display = 'none';
 }
 
 function updateProgress() {

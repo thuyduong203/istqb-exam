@@ -280,22 +280,13 @@ select {
     font-size: 1.1em;
 }
 
-.btn-shuffle {
-    background: var(--shuffle);
-    color: white;
-}
-
-.btn-shuffle:hover {
-    background: #d97706;
-}
-
 .btn-next {
-    background: var(--primary);
-    color: white;
+    background: var(--primary) !important;
+    color: white !important;
 }
 
 .btn-next:hover {
-    background: #1d4ed8;
+    background: #1d4ed8 !important;
 }
 
 .btn-prev {
@@ -307,13 +298,18 @@ select {
     background: #4b5563;
 }
 
+.btn-prev:disabled {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
 .btn-end {
-    background: var(--danger);
-    color: white;
+    background: var(--danger) !important;
+    color: white !important;
 }
 
 .btn-end:hover {
-    background: #b91c1c;
+    background: #b91c1c !important;
 }
 
 .btn-help {
@@ -339,7 +335,7 @@ select {
 
 .modal-content {
     background: white;
-    margin: 15% auto;
+    margin: 10% auto;
     padding: 24px;
     width: 90%;
     max-width: 420px;
@@ -398,6 +394,15 @@ select {
 
 .modal .btn:hover {
     background: #4b5563;
+}
+
+.btn-shuffle {
+    background: var(--shuffle) !important;
+    color: white !important;
+}
+
+.btn-shuffle:hover {
+    background: #d97706 !important;
 }
 
 .keyboard-help {

@@ -183,6 +183,7 @@ select {
     flex-direction: column;
     height: 65vh;
     overflow-y: auto;
+    width: 100%;
 }
 
 .question-counter {
@@ -457,4 +458,25 @@ select {
 
 .ai-result {
     text-align: left;
+}
+
+#ai-response {
+    width: 40%;
+    background: var(--light);
+    padding: 18px;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    margin-bottom: 16px;
+}
+
+.parent-question-box {
+    display: flex;
+    gap: 10px;
+}
+
+/* Khi màn hình nhỏ (ví dụ dưới 768px), đổi sang dạng cột */
+@media (max-width: 768px) {
+    .parent-question-box {
+        flex-direction: column;
+    }
 }

@@ -132,13 +132,16 @@ function startTimer() {
 function renderQuestion() {
   const form = document.getElementById('quizForm');
   form.innerHTML = '';
+
   if (currentIndex >= currentQuestions.length) {
     endQuiz();
     return;
   }
+
   const q = currentQuestions[currentIndex];
   const qNum = currentIndex + 1;
   const total = currentQuestions.length;
+
   document.getElementById(
     'questionCounter'
   ).textContent = `Câu ${qNum}/${total}`;
@@ -146,30 +149,51 @@ function renderQuestion() {
   const div = document.createElement('div');
   div.className = 'question-box';
 
-  // Build options - ensure data-key present
+  // Tạo danh sách lựa chọn
   const optionsHtml = Object.entries(q.options)
     .map(
       ([key, value]) => `
       <div class="option-item" data-key="${key}" onclick="selectAnswer('${key}')">
         <strong>${key}.</strong> ${value}
+        <p id="translated-${key}" style="font-size:14px; color:var(--primary); font-style:italic;"></p>
       </div>
     `
     )
     .join('');
 
   div.innerHTML = `
-      <div class="question-counter">Câu ${qNum}/${total}</div>
-      <div class="question-text">${q.question}</div>
-      <div class="options">
-        ${optionsHtml}
+    <div class="question-counter" style="display:flex; justify-content:space-between; align-items:center">
+      <div>Câu ${qNum}/${total}</div>
+      <div>
+        <button 
+          id="summarizeBtn-${currentIndex}"
+          onclick="summarizeWithAI(${currentIndex}, this)"
+          style="border:none; border-radius:10px; padding:5px 5px; margin:0 4px; cursor:pointer; font-size:12px; background:#eee; color:var(--primary); font-weight:600">
+          ✨ Phân tích
+        </button>
+        <button 
+          id="translateBtn-${currentIndex}"
+          onclick="translateWithAI(${currentIndex}, this)"
+          style="border:none; border-radius:10px; padding:5px 8px; margin:0 4px; cursor:pointer; font-size:12px; background:#eee; color:var(--primary); font-weight:600">
+          🌐 Dịch
+        </button>
       </div>
-    `;
+    </div>
+
+    <div class="question-text" id="questionText">
+        ${q.question}
+        <br/>
+        <span id="translatedText" style="font-size:14px; color:var(--primary); font-style:italic;"></span>
+    </div>
+
+    <div class="options">${optionsHtml}</div>
+  `;
+
   form.appendChild(div);
 
-  // Nếu câu đã trả lời trước đó trong session (chẳng hạn khi user prev/next), render trạng thái
+  // Nếu câu hỏi đã được trả lời
   const optionEls = form.querySelectorAll('.option-item');
   if (q.answered) {
-    // disable click và đánh dấu đúng/sai nếu biết
     optionEls.forEach((el) => {
       el.style.pointerEvents = 'none';
       const key = el.getAttribute('data-key');
@@ -182,6 +206,175 @@ function renderQuestion() {
 
   updateProgress();
   showActionButtons();
+}
+
+// Mở modal hiển thị kết quả
+function openAiModal(title, content) {
+  const modal = document.getElementById('aiModal');
+  const modalTitle = document.getElementById('aiModalTitle');
+  const modalBody = document.getElementById('aiModalBody');
+
+  modalTitle.innerHTML = title;
+  modalBody.innerHTML = `<div class="typing">${content}</div>`;
+  modal.style.display = 'block';
+}
+
+const APPS_SCRIPT_URL =
+  'https://script.google.com/macros/s/AKfycbyOmFmtTLxvNoeH-KCOOgODI-H5ZPOOmbNT4Zylq3WzfR_IrwCyaRxzExCHXmp2-7Mo/exec';
+
+// Biến để theo dõi trạng thái loading
+let isSummarizeLoading = false;
+let isTranslateLoading = false;
+
+// 🔹 Gọi AI thực tế qua Google Apps Script API
+async function summarizeWithAI(index, button) {
+  // Nếu đang loading thì không làm gì
+  if (isSummarizeLoading) return;
+
+  const q = currentQuestions[index];
+
+  // Set trạng thái loading
+  isSummarizeLoading = true;
+  button.disabled = true;
+  button.innerHTML = '⏳ Đang xử lý...';
+
+  try {
+    // Chuẩn bị dữ liệu POST
+    const postData = JSON.stringify({
+      question: q.question,
+      options: q.options,
+      answer: q.answer,
+    });
+
+    // 🔹 Gửi câu hỏi tới Apps Script
+    const response = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: postData,
+    });
+
+    // Cần kiểm tra response.ok vì Apps Script trả về lỗi 500 nếu có lỗi server
+    if (!response.ok) {
+      throw new Error(`Lỗi HTTP: ${response.status} ${response.statusText}`);
+    }
+
+    let data = await response.json();
+    if (data.data.includes('```json:disable-run')) {
+      data = JSON.parse(
+        data.data.replace('```json:disable-run', '').replace('```', '')
+      );
+    } else if (data.data.includes('```json')) {
+      data = JSON.parse(data.data.replace('```json', '').replace('```', ''));
+    } else {
+      data = JSON.parse(data.data);
+    }
+
+    if (data.error) throw new Error(data.error);
+
+    // CHỈ MỞ MODAL KHI ĐÃ CALL API XONG
+    openAiModal(
+      'Tóm tắt bằng AI',
+      `
+      <div class="ai-result">
+      ${
+        data.explanation
+          ? `<p class="mt-2"><strong>🧠 Giải thích:</strong> ${data.explanation}</p>`
+          : ''
+      }
+        ${
+          data.tip
+            ? `<p class="mt-2"><strong>💡 Mẹo:</strong> ${data.tip}</p>`
+            : ''
+        }
+      </div>
+      `
+    );
+  } catch (error) {
+    // Mở modal hiển thị lỗi
+    openAiModal(
+      'Lỗi',
+      `<div class="error p-3 bg-red-100 rounded-md">❌ Lỗi khi gọi AI: ${error.message}</div>`
+    );
+    console.error('Lỗi gọi Apps Script:', error);
+  } finally {
+    // Reset trạng thái loading
+    isSummarizeLoading = false;
+    button.disabled = false;
+    button.innerHTML = '✨';
+    button.title = 'Tóm tắt bằng AI';
+  }
+}
+
+// 🔹 Dịch mô phỏng (dịch cả câu hỏi & lựa chọn)
+async function translateWithAI(index, button) {
+  // Nếu đang loading thì không làm gì
+  if (isTranslateLoading) return;
+
+  const q = currentQuestions[index];
+  const translatedEl = document.getElementById('translatedText');
+
+  // Nếu đã hiển thị → ẩn đi
+  if (translatedEl.style.display === 'block') {
+    translatedEl.style.display = 'none';
+    for (const key in q.options) {
+      const optTrans = document.getElementById(`translated-${key}`);
+      if (optTrans) optTrans.style.display = 'none';
+    }
+    return;
+  }
+
+  // Nếu chưa dịch → gọi AI
+  // Set trạng thái loading
+  isTranslateLoading = true;
+  button.disabled = true;
+  button.innerHTML = '⏳ Đang dịch...';
+
+  const postData = JSON.stringify({
+    action: 'translate', // Thêm action để phân biệt
+    question: q.question,
+    options: q.options,
+  });
+
+  try {
+    const response = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: postData,
+    });
+
+    if (!response.ok) throw new Error(`Lỗi HTTP: ${response.status}`);
+
+    let data = await response.json();
+    if (data.data.includes('```json') || data.data.includes('```')) {
+      data = JSON.parse(data.data.replace('```json', '').replace('```', ''));
+    } else {
+      data = JSON.parse(data.data);
+    }
+
+    if (data.error) throw new Error(data.error);
+
+    translatedEl.style.display = 'block';
+    // Cập nhật bản dịch
+    translatedEl.textContent = data.translatedQuestion || q.question;
+
+    // Cập nhật các đáp án dịch
+    for (const key in q.options) {
+      const optTrans = document.getElementById(`translated-${key}`);
+      if (optTrans) {
+        optTrans.textContent = data.translatedOptions?.[key] || q.options[key];
+        optTrans.style.display = 'block';
+      }
+    }
+  } catch (error) {
+    translatedEl.innerHTML = `<span class="text-red-600">❌ Lỗi dịch: ${error.message}</span>`;
+    console.error('Lỗi dịch:', error);
+  } finally {
+    // Reset trạng thái loading
+    isTranslateLoading = false;
+    button.disabled = false;
+    button.innerHTML = '🌐';
+    button.title = 'Dịch bằng AI';
+  }
 }
 
 function selectAnswer(selected) {
@@ -400,6 +593,10 @@ function retryWrongInSession() {
 
 function closeHelpModal() {
   document.getElementById('helpModal').style.display = 'none';
+}
+
+function closeAiModal() {
+  document.getElementById('aiModal').style.display = 'none';
 }
 
 function updateProgress() {

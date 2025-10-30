@@ -450,3 +450,11 @@ select {
         justify-content: space-between;
     }
 }
+
+.ai-modal {
+    max-width: 100%;
+}
+
+.ai-result {
+    text-align: left;
+}
